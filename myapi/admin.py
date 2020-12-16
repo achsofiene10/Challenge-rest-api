@@ -7,3 +7,4 @@ from .models import Ticket
 
 admin.site.register(Product)
 admin.site.register(Ticket)
+
