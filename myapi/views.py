@@ -5,6 +5,14 @@ import json
 from .models import Ticket,Product
 from rest_framework import status
 from .serializers import TicketSerializer,ProductSerializer
+from django.core.files.storage import default_storage
+from django.conf import settings
+from django.core.files.base import ContentFile
+from datetime import datetime
+
+
+
+
 
 # Create your views here.
 
@@ -21,14 +29,19 @@ def getAllproducts(request):
 @api_view(["POST"])
 @csrf_exempt
 def addTicket(request):
-    payload = json.loads(request.body)
+    file = request.FILES['ticket']
+    # datetime object containing current date and time
+    now = datetime.now()
+    dt_ticket = now.strftime("%d_%m_%Y_%H_%M_%S")
     try:
+        path = default_storage.save(str(settings.BASE_DIR) + '/tickets/' +dt_ticket+'.pdf',
+                                    ContentFile(file.read()))
+        path_ticket=str(settings.BASE_DIR)+'/tickets/'+dt_ticket+'.pdf'
         ticket = Ticket.objects.create(
-            file_path=payload["file_path"],
+            file_path=path_ticket,
         )
         serializer = TicketSerializer(ticket)
         return JsonResponse({'ticket': serializer.data}, safe=False, status=status.HTTP_201_CREATED)
     except Exception:
         return JsonResponse({'error': 'Something terrible went wrong'}, safe=False,
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
